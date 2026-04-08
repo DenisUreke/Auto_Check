@@ -9,7 +9,7 @@ DB_PATH = Path("saw_monitor.db")
 INTERVAL_SECONDS = 10 # Tid i sekunder mellan varje kontroll
 REQUEST_TIMEOUT_SECONDS = 10 # Timeout för HTTP-förfrågningar i sekunder
 
-START_TIME = dt_time(12, 0)  # Tid vi startar övervakningen
+START_TIME = dt_time(9, 0)  # Tid vi startar övervakningen
 END_TIME = dt_time(5, 0)     # Tid vi avslutar övervakningen
 
 TARGETS = [
@@ -145,7 +145,7 @@ def poll_every_10_seconds() -> None:
         else:
             print(
                 f"[{now.isoformat(timespec='seconds')}] "
-                f"Outside monitoring window ({START_TIME.strftime('%H:%M')} - {END_TIME.strftime('%H:%M')})"
+                f"Outisde monitoring window ({START_TIME.strftime('%H:%M')} - {END_TIME.strftime('%H:%M')})"
             )
             time.sleep(60)
 
