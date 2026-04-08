@@ -1,13 +1,16 @@
 import sqlite3
 import time
-from datetime import datetime
+from datetime import datetime, time as dt_time
 from pathlib import Path
 
 import requests
 
 DB_PATH = Path("saw_monitor.db")
-INTERVAL_SECONDS = 10
-REQUEST_TIMEOUT_SECONDS = 5
+INTERVAL_SECONDS = 10 # Tid i sekunder mellan varje kontroll
+REQUEST_TIMEOUT_SECONDS = 10 # Timeout för HTTP-förfrågningar i sekunder
+
+START_TIME = dt_time(12, 0)  # Tid vi startar övervakningen
+END_TIME = dt_time(5, 0)     # Tid vi avslutar övervakningen
 
 TARGETS = [
     {"name": "Saw 1", "url": "http://nobsa2imasaw01:9876/interface/isconnected"},
@@ -80,6 +83,15 @@ def insert_log(
         conn.close()
 
 
+def is_in_time_window(now: datetime) -> bool:
+    current_time = now.time()
+
+    if START_TIME < END_TIME:
+        return START_TIME <= current_time < END_TIME
+
+    return current_time >= START_TIME or current_time < END_TIME
+
+
 def check_target(target: dict) -> None:
     checked_at = datetime.now().isoformat(timespec="seconds")
 
@@ -123,10 +135,19 @@ def check_target(target: dict) -> None:
 
 def poll_every_10_seconds() -> None:
     while True:
-        for target in TARGETS:
-            check_target(target)
+        now = datetime.now()
 
-        time.sleep(INTERVAL_SECONDS)
+        if is_in_time_window(now):
+            for target in TARGETS:
+                check_target(target)
+
+            time.sleep(INTERVAL_SECONDS)
+        else:
+            print(
+                f"[{now.isoformat(timespec='seconds')}] "
+                f"Outside monitoring window ({START_TIME.strftime('%H:%M')} - {END_TIME.strftime('%H:%M')})"
+            )
+            time.sleep(60)
 
 
 if __name__ == "__main__":
